@@ -1,1 +1,6 @@
 /target
+/.idea/.gitignore
+/.idea/material_theme_project_new.xml
+/.idea/modules.xml
+/.idea/persistent_db_w_query_language.iml
+/.idea/vcs.xml
