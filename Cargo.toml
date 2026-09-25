@@ -7,3 +7,4 @@ edition = "2024"
 overflow-checks = true # For this project (not mutch arithmetic) minimal performance degrade taken into account, but no risk of wraparound w/ integer overflow
 
 [dependencies]
+thiserror = "2.0.21"

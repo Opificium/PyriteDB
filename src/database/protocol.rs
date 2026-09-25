@@ -52,24 +52,29 @@ pub fn parse_line(line: &str) -> Result<Command, ParseError> {
     }
 }
 
+/// Parses a line which consists of multiple commands seperated with semicolons.
+/// Example: "GET a; SET b 2; DEL d"
+pub fn parse_multi(line: &str) -> Vec<Result<Command, ParseError>> {
+    line.split(';').map(str::trim).filter(|s| !s.is_empty()).map(parse_line).collect()
+}
+
 /// Executes a command against DB and returns the answer.
 /// Free function, not method on DB, since it connects knowlegde of the protocol and DB access
 pub fn execute(db: &Db, cmd: Command) -> String {
     match cmd {
         Command::Get(key) => match db.get(&key) {
-            Some(value) => format!("Ok {value}"),
-            None => "NOT FOUND".to_string()
+            Ok(Some(val)) => format!("OK {val}"),
+            Ok(None) => "NOT_FOUND".to_string(),
+            Err(e) => format!("ERROR {e}")
         },
-        Command::Set(key, value) => {
-            db.set(key, value);
-            "OK".to_string()
+        Command::Set(key, value) => match db.set(key, value){
+            Ok(()) => "OK".to_string(),
+            Err(e) => format!("ERROR {e}")
         },
-        Command::Del(key) => {
-            if db.del(&key) {
-                "OK".to_string()
-            } else {
-                "NOT_FOUND".to_string()
-            }
+        Command::Del(key) => match db.del(&key) {
+            Ok(true) => "OK".to_string(),
+            Ok(false) => "NOT_FOUND".to_string(),
+            Err(e) => format!("ERROR {e}")
         }
         Command::Unknown(verb) => format!("ERROR unknown command '{verb}'")
     }
@@ -80,13 +85,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_get() {
-        assert_eq!(parse_line("GET foo"),
-        Ok(Command::Get("foo".to_string())));
+    fn parses_get() {
+        assert_eq!(parse_line("GET foo"), Ok(Command::Get("foo".to_string())));
     }
 
     #[test]
-    fn parse_set() {
+    fn parses_set() {
         assert_eq!(
             parse_line("SET foo bar"),
             Ok(Command::Set("foo".to_string(), "bar".to_string()))
@@ -95,8 +99,7 @@ mod tests {
 
     #[test]
     fn is_case_insensitive() {
-        assert_eq!(parse_line("get foo"),
-        Ok(Command::Get("foo".to_string())));
+        assert_eq!(parse_line("get foo"), Ok(Command::Get("foo".to_string())));
     }
 
     #[test]
@@ -106,6 +109,27 @@ mod tests {
 
     #[test]
     fn set_without_value_is_error() {
-        assert_eq!(parse_line("SET foo"), Err(ParseError::MissingArgument("value")));
+        assert_eq!(
+            parse_line("SET foo"),
+            Err(ParseError::MissingArgument("value"))
+        );
+    }
+
+    #[test]
+    fn parses_multiple_commands() {
+        let results = parse_multi("GET a; SET b 2; DEL d");
+        assert_eq!(results.len(), 3);
+        assert_eq!(results[0], Ok(Command::Get("a".to_string())));
+        assert_eq!(
+            results[1],
+            Ok(Command::Set("b".to_string(), "2".to_string()))
+        );
+        assert_eq!(results[2], Ok(Command::Del("d".to_string())));
+    }
+
+    #[test]
+    fn parse_multi_ignores_trailing_semicolon() {
+        let results = parse_multi("GET a;");
+        assert_eq!(results.len(), 1);
     }
 }
