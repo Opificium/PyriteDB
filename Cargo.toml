@@ -3,4 +3,7 @@ name = "persistent_db_w_query_language"
 version = "0.1.0"
 edition = "2024"
 
+[profile.release]
+overflow-checks = true # For this project (not mutch arithmetic) minimal performance degrade taken into account, but no risk of wraparound w/ integer overflow
+
 [dependencies]

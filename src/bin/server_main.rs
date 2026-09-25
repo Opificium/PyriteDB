@@ -1,8 +1,6 @@
-mod database;
-
-use database::db::Db;
+use persistent_db_w_query_language::database::db::Db;
 use std::sync::Arc;
-use crate::database::server;
+use persistent_db_w_query_language::database::server;
 
 fn main() -> std::io::Result<()>{
     let db = Arc::new(Db::new());
