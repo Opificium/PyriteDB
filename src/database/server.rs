@@ -1,5 +1,5 @@
 use super::db::Db;
-use super::protocol::{execute, parse_line};
+use super::protocol::{execute_line};
 use std::io::{BufRead, BufReader, Write};
 use std::net::{TcpListener, TcpStream};
 use std::sync::Arc;
@@ -35,10 +35,7 @@ fn handle_client(stream: TcpStream, db: Arc<Db>) {
             continue;
         }
 
-        let response = match parse_line(&line) {
-            Ok(cmd) => execute(&db, cmd),
-            Err(e) => format!("ERROR {e}")
-        };
+        let response = execute_line(&db, &line);
 
         if let Err(e) = writeln!(writer, "{response}") {
             eprintln!("[!] Error writing to {peer}: {e}");

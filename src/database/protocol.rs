@@ -80,6 +80,21 @@ pub fn execute(db: &Db, cmd: Command) -> String {
     }
 }
 
+/// Processes a complete line of commands (one command or multiple, separated with semicolons) and returns exactly one (summarized) answer.
+/// That ensures the concept of "one line in, one line out" persists, even if there are multiple commands executed on backend.
+pub fn execute_line(db: &Db, line: &str) -> String {
+    let results = parse_multi(line);
+
+    if results.is_empty() {
+        return "ERROR empty command".to_string();
+    }
+
+    results.into_iter().map(|parsed| match parsed {
+        Ok(cmd) => execute(db, cmd),
+        Err(e) => format!("ERROR {e}"),
+    }).collect::<Vec<_>>().join("; ")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
