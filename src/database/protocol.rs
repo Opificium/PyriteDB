@@ -1,5 +1,15 @@
+//! Protocol and query language module of the DB.
+//!
+//! The formal Type 2 EBNF grammar is located at 'docs/grammar.ebnf'
+//! and is documented in project root, and also included in binary at
+//! compile time (see 'GRAMMAR_SPEC').
+//! This is to ensure no outdated specification of the grammar is
+//! used.
+
 use super::db::Db;
 use std::fmt;
+
+pub const GRAMMAR_SPEC: &str = include_str!("../docs/grammar.ebnf");
 
 /// Paired command.
 #[derive(Debug, PartialEq, Eq)]

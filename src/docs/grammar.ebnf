@@ -1,0 +1,40 @@
+(* KV-DB query language, type 2 grammar (context-free), in EBNF notation.
+   Whitespace separates tokens and is not part of the grammar itself.
+   Reserved words (GET, SET, DEL, EXISTS, KEYS, TTL, TRUE, FALSE)
+   are validated by the lexer BEFORE generic identifier recognition is taken
+   into account (keyword priority / maximal munch), to solve ambiguity
+   with identifiers *)
+
+
+Program       = [ CommandList ] ;
+CommandList   = Command { ";" Command } [ ";" ] ;
+
+Command       = GetCommand
+              | SetCommand
+              | DelCommand
+              | ExistsCommand
+              | KeysCommand ;
+
+GetCommand    = "GET" Key ;
+SetCommand    = "SET" Key Value [ "TTL" Number ] ;
+DelCommand    = "DEL" Key { Key } ;
+ExistsCommand = "EXISTS" Key ;
+KeysCommand   = "KEYS" [ Pattern ] ;
+
+Key           = Identifier | StringLiteral ;
+Value         = Identifier | StringLiteral | Number | Boolean ;
+Pattern       = StringLiteral | Identifier ;
+
+
+(* Identifier must start with letters, to resolve ambiguity with Number.
+   For example, "123" would be a valid identifier and number if not done
+   this way. *)
+
+Identifier    = Letter { AlphaNumChar } ;
+Number        = Digit { Digit } ;
+Boolean       = "TRUE" | "FALSE" ;
+StringLiteral = '"' { AnyCharExceptQuote } '"' ;
+
+Letter        = "a" | ... | "z" | "A" | ... | "Z" ;
+Digit         = "0" | ... | "9" ;
+AlphaNumChar  = Letter | Digit ;
