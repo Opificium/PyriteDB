@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::sync::RwLock;
+use std::time::Instant;
 use thiserror::Error;
 
 
@@ -13,6 +14,21 @@ pub enum DbError {
 
     #[error("Write access has failed: Lock poisoned (Other Thread with lock on hold has crashed)")]
     WriteLockPoisoned,
+}
+
+/// Saved value with optional "expiration date".
+struct Entry {
+    value: String,
+    expires_at: Option<Instant>
+}
+
+impl Entry {
+    fn is_expired(&self, now: Instant) -> bool {
+        match self.expires_at {
+            Some(exp) => now >= exp,
+            None => false
+        }
+    }
 }
 
 /// Encapsulates DB-state behind API.

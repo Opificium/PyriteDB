@@ -36,7 +36,7 @@ impl fmt::Display for ParseError {
     }
 }
 
-// Implementing so errors are treated liek actual Rust errors, compatible with '?'
+// Implementing so errors are treated like actual Rust errors, compatible with '?'
 impl std::error::Error for ParseError {}
 
 /// Parse single protocol line to a command
@@ -62,14 +62,14 @@ pub fn parse_line(line: &str) -> Result<Command, ParseError> {
     }
 }
 
-/// Parses a line which consists of multiple commands seperated with semicolons.
+/// Parses a line which consists of multiple commands separated with semicolons.
 /// Example: "GET a; SET b 2; DEL d"
 pub fn parse_multi(line: &str) -> Vec<Result<Command, ParseError>> {
     line.split(';').map(str::trim).filter(|s| !s.is_empty()).map(parse_line).collect()
 }
 
 /// Executes a command against DB and returns the answer.
-/// Free function, not method on DB, since it connects knowlegde of the protocol and DB access
+/// Free function, not method on DB, since it connects knowledge of the protocol and DB access
 pub fn execute(db: &Db, cmd: Command) -> String {
     match cmd {
         Command::Get(key) => match db.get(&key) {
